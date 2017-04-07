@@ -1,6 +1,8 @@
 
 void unfold(int test1 = 0, int test2 = -1, int test3 = -1, int itermax = 10000)
 {
+    if(test1<0 || test1>63 || test2<-1 || test2>63 || test3<-1 || test3>63) { std::cout << "error with input run values! " << std::endl; return; }
+
     int nbinsx = 5010;
     double xmin = 0;
     double xmax = nbinsx;
@@ -19,6 +21,7 @@ void unfold(int test1 = 0, int test2 = -1, int test3 = -1, int itermax = 10000)
         hists[i] = (TH1F*)f->Get(Form("ScionixCal%d",i)); 
         //hists[i] = (TH1F*)f->Get(Form("ProtonCal%d",i)); 
         if(hists[i]->GetNbinsX() == 50100) hists[i]->Rebin(10);
+        hists[i]->Scale(1./hists[i]->Integral());
     }
     for(int i=0; i<nbinsy; i++) {
         for(int j=0; j<nbinsx; j++) {
@@ -49,11 +52,15 @@ void unfold(int test1 = 0, int test2 = -1, int test3 = -1, int itermax = 10000)
     hists[test1]->SetLineColor(kRed);
     hists[test1]->Draw("same");
     if(test2 != -1) { hists[test2]->SetLineColor(kBlue); hists[test2]->Draw("same"); }
-    if(test3 != -1) { hists[test3]->SetLineColor(kGreen); hists[test3]->Draw("same"); }
+    if(test3 != -1) { hists[test3]->SetLineColor(kMagenta); hists[test3]->Draw("same"); }
+    h->GetYaxis()->SetRangeUser(0,1.5*h->GetMaximum());
+    gPad->Update();
 
     TSpectrum * spec = new TSpectrum();
     //spec->Unfolding(source,(const double **)response, nbinsx, nbinsy, 1000, 1, 1);
+    std::cout << "unfolding... " << std::flush;
     spec->Unfolding(source,(const double **)response, nbinsx, nbinsy, itermax, 1, 1);
+    std::cout << "done! " << std::endl; 
     for(int i=0; i<nbinsy; i++) d->SetBinContent(i,source[i]);
     //d->Draw();
     
